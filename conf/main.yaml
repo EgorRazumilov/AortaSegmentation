@@ -1,0 +1,68 @@
+defaults:
+  - _self_
+
+seed: 42
+batch_size: 2
+num_workers: 16
+max_epochs: 100
+precision: 32
+accelerator: gpu
+num_nodes: 1
+num_gpus: [0]
+train_val_splits: [0.75, 0.15]
+
+tb_logs_path: ./logs
+checkpoint_save_path: ./checkpoints
+save_top_k_models: 1
+compare_metric: val_loss
+
+train_dataset:
+  _target_: datasets.SegThor3DDataset
+  images_path: ${hydra:runtime.cwd}/data/segTHOR
+  is_train: true
+  start: 0
+  stop: 30
+val_dataset:
+  _target_: datasets.SegThor3DDataset
+  images_path: ${hydra:runtime.cwd}/data/segTHOR
+  is_train: false
+  start: 30
+  stop: 35
+test_dataset:
+  _target_: datasets.SegThor3DDataset
+  images_path: ${hydra:runtime.cwd}/data/segTHOR
+  is_train: false
+  start: 35
+  stop: 40
+
+model:
+  
+pl_module:
+  _target_: modules.Module3D.SegmentationModule3D
+  model: ${model}
+  criterion: 
+    _target_: torch.nn.BCEWithLogitsLoss
+  lr: 1e-4
+  weight_decay: 0
+
+train_dataloader:
+  _target_: torch.utils.data.DataLoader
+  batch_size: ${batch_size}
+  num_workers: ${num_workers}
+  shuffle: True
+  drop_last: True
+  dataset:
+
+val_dataloader:
+  _target_: torch.utils.data.DataLoader
+  batch_size: ${batch_size}
+  num_workers: ${num_workers}
+  shuffle: False
+  dataset:
+
+test_dataloader:
+  _target_: torch.utils.data.DataLoader
+  batch_size: ${batch_size}
+  num_workers: ${num_workers}
+  shuffle: False
+  dataset:
